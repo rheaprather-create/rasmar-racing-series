@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RASMAR Race Control</title>
+<style>
+:root{--bg:#07120d;--panel:#0d1f16;--panel2:#11271c;--line:#214d35;--green:#39ff88;--text:#f4fff8;--muted:#9db5a7;--warn:#ffd166;--red:#ff5d5d}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),repeating-linear-gradient(45deg,#08150f 0 14px,#0a1a12 14px 28px);color:var(--text)}
+header{position:sticky;top:0;z-index:10;background:#06100bde;border-bottom:1px solid var(--line)}
+.wrap{max-width:1100px;margin:auto;padding:18px}.brand{display:flex;align-items:center;gap:12px}.flag{font-size:34px}.brand h1{margin:0;font-size:clamp(24px,5vw,42px)}.brand small{display:block;color:var(--green);font-weight:700;letter-spacing:2px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:16px}.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 25px #0007}.card h2{margin:0 0 12px;font-size:18px}
+.status{grid-column:span 12;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{background:#07150f;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}.kpi b{display:block;font-size:25px;color:var(--green)}
+.control{grid-column:span 7}.log{grid-column:span 5}.drivers,.penalties{grid-column:span 12}.row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}button,input,select{font:inherit}button{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}.btn{background:var(--green);color:#041008}.ghost{background:#163524;color:#dffff0;border:1px solid var(--line)}.warn{background:var(--warn);color:#171100}.red{background:var(--red);color:white}
+input,select{width:100%;background:#07150f;color:white;border:1px solid var(--line);border-radius:12px;padding:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:11px 8px;border-bottom:1px solid #183b29;text-align:left}th{color:var(--green);font-size:12px;text-transform:uppercase}.badge{padding:5px 8px;border-radius:999px;background:#163524;color:#dffff0;font-size:12px;font-weight:700}
+.feed{max-height:330px;overflow:auto;display:flex;flex-direction:column;gap:8px}.event{background:#07150f;border-left:4px solid var(--green);padding:10px;border-radius:10px}.event time{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.lightbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.light{padding:14px 8px;border-radius:12px;text-align:center;font-weight:900;background:#142119;border:1px solid var(--line)}.light.active.green{background:#0f6d36}.light.active.yellow{background:#7c6410}.light.active.red{background:#7c1616}.light.active.checkered{background:linear-gradient(45deg,#fff 25%,#111 25% 50%,#fff 50% 75%,#111 75%);background-size:20px 20px;color:#39ff88;text-shadow:0 1px 2px #000}
+.note{color:var(--muted);font-size:12px}@media(max-width:800px){.control,.log,.drivers,.penalties{grid-column:span 12}.status{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<header><div class="wrap brand"><div class="flag">🏁</div><div><h1>RASMAR Race Control</h1><small>OFFICIAL CONTROL CENTER</small></div></div></header>
+<main class="wrap"><section class="grid">
+<div class="card status">
+<div class="kpi"><span>Track</span><b id="trackName">Daytona</b></div>
+<div class="kpi"><span>Lap</span><b><span id="lap">1</span>/<span id="totalLaps">50</span></b></div>
+<div class="kpi"><span>Leader</span><b id="leader">Jaxon #5</b></div>
+<div class="kpi"><span>Status</span><b id="raceStatus">GREEN</b></div>
+</div>
+<div class="card control">
+<h2>Race Controls</h2>
+<div class="lightbar">
+<button class="light green active" onclick="setFlag('GREEN')">GREEN</button>
+<button class="light yellow" onclick="setFlag('YELLOW')">YELLOW</button>
+<button class="light red" onclick="setFlag('RED')">RED</button>
+<button class="light checkered" onclick="setFlag('CHECKERED')">CHECKERED</button>
+</div>
+<div class="row">
+<button class="btn" onclick="nextLap()">+ Next Lap</button>
+<button class="ghost" onclick="prevLap()">− Lap</button>
+<button class="warn" onclick="caution()">⚠ Caution</button>
+</div>
+<div class="two">
+<div><label>Track</label><input id="trackInput" value="Daytona" oninput="syncSetup()"></div>
+<div><label>Total Laps</label><input id="lapsInput" type="number" value="50" min="1" oninput="syncSetup()"></div>
+</div>
+<h2 style="margin-top:18px">Quick Message</h2>
+<div class="row"><input id="message" placeholder="Restart zone violation under review"><button class="btn" onclick="postMessage()">Post</button></div>
+</div>
+<div class="card log"><h2>Race Control Feed</h2><div id="feed" class="feed"></div></div>
+<div class="card drivers"><h2>Live Running Order</h2><table><thead><tr><th>Pos</th><th>Driver</th><th>No.</th><th>Status</th><th>Move</th></tr></thead><tbody id="driverRows"></tbody></table></div>
+<div class="card penalties">
+<h2>Penalty / Incident Control</h2>
+<div class="two"><select id="penaltyDriver"></select><select id="penaltyType"><option>Warning</option><option>Pass-through</option><option>End of Line</option><option>1 Lap Penalty</option><option>2 Lap Penalty</option><option>Disqualification</option></select></div>
+<div class="row"><input id="reason" placeholder="Reason: avoidable contact, jumping restart, etc."><button class="red" onclick="issuePenalty()">Issue Penalty</button></div>
+<p class="note">Everything saves on this device automatically.</p>
+</div>
+</section></main>
+<script>
+const defaults=[{name:'Jaxon',num:5,status:'Running'},{name:'Levi',num:48,status:'Running'},{name:'Axel',num:24,status:'Running'},{name:'Kole',num:9,status:'Running'},{name:'Jarod',num:23,status:'Running'},{name:'Riley',num:31,status:'Running'}];
+let state=JSON.parse(localStorage.getItem('rasmarRaceControlV1'))||{track:'Daytona',lap:1,total:50,flag:'GREEN',drivers:defaults,feed:[]};
+function save(){localStorage.setItem('rasmarRaceControlV1',JSON.stringify(state))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function addEvent(text){state.feed.unshift({text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});save();renderFeed()}
+function renderFeed(){feed.innerHTML=state.feed.length?state.feed.map(x=>`<div class="event">${esc(x.text)}<time>${x.time}</time></div>`).join(''):`<div class="event">Race control online.<time>Ready</time></div>`}
+function renderDrivers(){driverRows.innerHTML=state.drivers.map((d,i)=>`<tr><td>${i+1}</td><td>${esc(d.name)}</td><td>#${d.num}</td><td><span class="badge">${esc(d.status)}</span></td><td><button class="ghost" onclick="moveDriver(${i},-1)">▲</button> <button class="ghost" onclick="moveDriver(${i},1)">▼</button></td></tr>`).join('');leader.textContent=state.drivers[0].name+' #'+state.drivers[0].num;penaltyDriver.innerHTML=state.drivers.map((d,i)=>`<option value="${i}">${d.name} #${d.num}</option>`).join('')}
+function render(){trackName.textContent=state.track;trackInput.value=state.track;lap.textContent=state.lap;totalLaps.textContent=state.total;lapsInput.value=state.total;raceStatus.textContent=state.flag;document.querySelectorAll('.light').forEach(x=>x.classList.remove('active'));[...document.querySelectorAll('.light')].find(x=>x.textContent.trim()===state.flag)?.classList.add('active');renderDrivers();renderFeed()}
+function setFlag(flag){state.flag=flag;addEvent(`Flag changed to ${flag}.`);save();render()}
+function nextLap(){if(state.lap<state.total)state.lap++;if(state.lap===state.total)addEvent('Final lap!');save();render()}
+function prevLap(){state.lap=Math.max(1,state.lap-1);save();render()}
+function caution(){state.flag='YELLOW';addEvent('Caution is out. Field is frozen.');save();render()}
+function syncSetup(){state.track=trackInput.value||'Track';state.total=Math.max(1,parseInt(lapsInput.value)||1);if(state.lap>state.total)state.lap=state.total;save();render()}
+function postMessage(){const v=message.value.trim();if(!v)return;addEvent(v);message.value=''}
+function moveDriver(i,dir){let j=i+dir;if(j<0||j>=state.drivers.length)return;let a=state.drivers[i].name,b=state.drivers[j].name;[state.drivers[i],state.drivers[j]]=[state.drivers[j],state.drivers[i]];addEvent(`${a} and ${b} changed position.`);save();render()}
+function issuePenalty(){const d=state.drivers[+penaltyDriver.value],type=penaltyType.value,r=reason.value.trim()||'No reason entered';addEvent(`${type} issued to ${d.name} #${d.num}: ${r}`);d.status=type==='Disqualification'?'DQ':type;reason.value='';save();render()}
+render();
+</script>
+</body>
+</html>
