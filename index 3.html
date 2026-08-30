@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RASMAR Fan Zone</title>
+<style>
+:root{
+  --bg:#07120d;--panel:#0d1f16;--panel2:#11271c;--line:#214d35;
+  --green:#39ff88;--text:#f5fff8;--muted:#9db5a7;--red:#ff5d5d;--yellow:#ffd166
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:
+linear-gradient(rgba(0,0,0,.4),rgba(0,0,0,.4)),
+repeating-linear-gradient(45deg,#07120d 0 14px,#0a1a12 14px 28px);color:var(--text)}
+header{position:sticky;top:0;z-index:20;background:#06100be8;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+.wrap{max-width:980px;margin:auto;padding:16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo h1{margin:0;font-size:clamp(24px,5vw,40px)}
+.logo small{display:block;color:var(--green);font-weight:800;letter-spacing:1.5px}
+.pill{background:#143522;border:1px solid var(--line);padding:8px 12px;border-radius:999px;color:#dffff0;font-size:12px;font-weight:700}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:16px}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 12px 28px #0007}
+h2,h3{margin-top:0}
+label{font-size:12px;color:var(--muted);font-weight:700}
+input,textarea,select{width:100%;background:#07150f;color:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;margin-top:6px}
+textarea{min-height:110px;resize:vertical}
+button{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}
+.btn{background:var(--green);color:#041008}
+.ghost{background:#153522;color:#eafff1;border:1px solid var(--line)}
+.red{background:#5f1a1a;color:white}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rules{padding-left:18px;color:#d5e9dc}
+.rules li{margin:8px 0}
+.note{color:var(--muted);font-size:12px;line-height:1.4}
+.feed{display:flex;flex-direction:column;gap:12px}
+.post{background:#091811;border:1px solid var(--line);border-radius:16px;padding:14px}
+.posthead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.name{font-weight:900}.meta{font-size:11px;color:var(--muted);margin-top:3px}
+.tag{font-size:11px;background:#163923;color:var(--green);border:1px solid var(--line);padding:4px 7px;border-radius:999px;font-weight:800}
+.body{white-space:pre-wrap;line-height:1.45;margin:12px 0}
+.actions{display:flex;gap:8px}
+.actions button{padding:8px 10px;font-size:12px}
+.pin{border-left:4px solid var(--green)}
+.empty{text-align:center;color:var(--muted);padding:30px}
+.banner{background:#0f2f1d;border:1px solid #2f6948;border-radius:14px;padding:12px;margin-bottom:14px;color:#dffff0}
+#status{margin-top:10px;font-size:12px;font-weight:700}
+.ok{color:var(--green)}.bad{color:#ff8b8b}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.sidebar{order:2}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap brand">
+    <div class="logo"><div style="font-size:34px">🏁</div><div><h1>RASMAR Fan Zone</h1><small>THE RACING COMMUNITY</small></div></div>
+    <div class="pill">Fan Feed</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner"><b>Welcome to the RASMAR Fan Zone!</b> Post race reactions, predictions, favorite drivers, and league talk. Keep it clean and respectful. 🏎️</div>
+
+  <div class="grid">
+    <aside class="sidebar">
+      <div class="card">
+        <h2>Create a post</h2>
+        <label>Display name</label>
+        <input id="displayName" maxlength="24" placeholder="Example: RaceFan24">
+
+        <label style="display:block;margin-top:12px">Topic</label>
+        <select id="topic">
+          <option>Race Reaction</option>
+          <option>Prediction</option>
+          <option>Favorite Driver</option>
+          <option>League Talk</option>
+          <option>Question</option>
+        </select>
+
+        <label style="display:block;margin-top:12px">Post</label>
+        <textarea id="postText" maxlength="500" placeholder="What do you want to say?"></textarea>
+
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="submitPost()">Post to Fan Zone</button>
+        </div>
+        <div id="status"></div>
+        <p class="note">For safety, don't post phone numbers, addresses, passwords, school info, or other private information.</p>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Fan Zone Rules</h3>
+        <ul class="rules">
+          <li>No bullying or threats.</li>
+          <li>No personal information.</li>
+          <li>No spam.</li>
+          <li>Keep race arguments respectful.</li>
+          <li>Report posts that break the rules.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <section>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">Latest Posts</h2>
+          <button class="ghost" onclick="clearDemo()">Reset Demo</button>
+        </div>
+        <div id="feed" class="feed" style="margin-top:14px"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const KEY='rasmarFanZoneV1';
+const seed=[
+  {id:'official1',name:'RASMAR Racing',topic:'Official',text:'Welcome to the official RASMAR Fan Zone! 🏁 Drop your race predictions and reactions here.',likes:8,reported:false,pinned:true,time:Date.now()-7200000},
+  {id:'fan1',name:'SpeedFan',topic:'Prediction',text:'Calling it now: the next race is going to have a crazy last-lap finish 🔥',likes:3,reported:false,pinned:false,time:Date.now()-3600000}
+];
+let posts=JSON.parse(localStorage.getItem(KEY)||'null')||seed;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(posts))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function relative(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return 'just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function containsPrivateInfo(t){
+  const phone=/\b(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b/;
+  const email=/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+  return phone.test(t)||email.test(t);
+}
+function submitPost(){
+  const name=displayName.value.trim();
+  const text=postText.value.trim();
+  const st=document.getElementById('status');
+  st.className='';
+  if(name.length<2||text.length<2){st.className='bad';st.textContent='Add a display name and a post first.';return}
+  if(containsPrivateInfo(name+' '+text)){st.className='bad';st.textContent='Please remove phone numbers or email addresses before posting.';return}
+  posts.unshift({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,topic:topic.value,text,likes:0,reported:false,pinned:false,time:Date.now()});
+  save();postText.value='';st.className='ok';st.textContent='Posted! 🏁';render();
+}
+function likePost(id){
+  const p=posts.find(x=>x.id===id);if(!p)return;p.likes++;save();render()
+}
+function reportPost(id){
+  const p=posts.find(x=>x.id===id);if(!p)return;p.reported=true;save();render()
+}
+function clearDemo(){posts=[...seed];save();render()}
+function render(){
+  const visible=posts.filter(p=>!p.reported).sort((a,b)=>(b.pinned-a.pinned)||(b.time-a.time));
+  feed.innerHTML=visible.length?visible.map(p=>`
+    <article class="post ${p.pinned?'pin':''}">
+      <div class="posthead">
+        <div><div class="name">${esc(p.name)}</div><div class="meta">${relative(p.time)}</div></div>
+        <span class="tag">${esc(p.topic)}</span>
+      </div>
+      <div class="body">${esc(p.text)}</div>
+      <div class="actions">
+        <button class="ghost" onclick="likePost('${p.id}')">❤️ ${p.likes}</button>
+        ${p.pinned?'':'<button class="ghost" onclick="reportPost(\\''+p.id+'\\')">🚩 Report</button>'}
+      </div>
+    </article>`).join(''):'<div class="empty">No posts yet. Be the first! 🏁</div>';
+}
+render();
+setInterval(render,60000);
+</script>
+</body>
+</html>
